@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Money Tracker</title>
+  <!-- Link to Google Material Icons -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+
+  <div class="max-w-lg mx-auto p-6 bg-white rounded-lg shadow-lg mt-10">
+    <h1 class="text-3xl font-semibold text-center mb-4">Money Tracker</h1>
+
+    <!-- Form to add Income or Expense -->
+    <form id="form" class="space-y-4">
+      <div class="flex space-x-4">
+        <input type="text" id="amount" class="w-1/2 p-2 border border-gray-300 rounded" placeholder="Amount">
+        <input type="text" id="category" class="w-1/2 p-2 border border-gray-300 rounded" placeholder="Category (e.g., Food, Rent)">
+      </div>
+      <div class="flex space-x-4">
+        <select id="type" class="w-1/2 p-2 border border-gray-300 rounded">
+          <option value="income">Income</option>
+          <option value="expense">Expense</option>
+        </select>
+        <button type="submit" class="w-1/2 p-2 bg-blue-500 text-white rounded hover:bg-blue-600">Add</button>
+      </div>
+    </form>
+
+    <!-- Display list of Expenses and Incomes -->
+    <h2 class="text-2xl font-semibold text-center my-4">Transactions</h2>
+    <ul id="transactions-list" class="space-y-2">
+      <!-- List items will be added dynamically here -->
+    </ul>
+
+    <!-- Total Display -->
+    <div class="flex justify-between mt-4">
+      <span class="font-semibold text-lg">Total:</span>
+      <span id="total-amount" class="font-semibold text-lg">$0</span>
+    </div>
+
+    <!-- Clear All Button -->
+    <div class="text-center mt-4">
+      <button onclick="clearAll()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+        Clear All
+      </button>
+    </div>
+  </div>
+
+  <!-- Script to Handle Form and Actions -->
+  <script>
+    const form = document.getElementById("form");
+    const transactionsList = document.getElementById("transactions-list");
+    const amountInput = document.getElementById("amount");
+    const categoryInput = document.getElementById("category");
+    const typeSelect = document.getElementById("type");
+    const totalAmountElement = document.getElementById("total-amount");
+
+    // Load transactions from localStorage if available
+    let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+
+    // Add a new transaction
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      
+      const amount = parseFloat(amountInput.value);
+      const category = categoryInput.value;
+      const type = typeSelect.value;
+
+      if (amount && category) {
+        transactions.push({ amount, category, type });
+        localStorage.setItem('transactions', JSON.stringify(transactions)); // Save to localStorage
+        updateTransactionsList();
+        Swal.fire('Success!', 'Transaction added successfully!', 'success');
+      } else {
+        Swal.fire('Error!', 'Please fill out all fields.', 'error');
+      }
+
+      amountInput.value = '';
+      categoryInput.value = '';
+    });
+
+    // Delete a transaction
+    function deleteTransaction(index) {
+      transactions.splice(index, 1);
+      localStorage.setItem('transactions', JSON.stringify(transactions)); // Save changes to localStorage
+      updateTransactionsList();
+      Swal.fire('Deleted!', 'Transaction removed successfully!', 'success');
+    }
+
+    // Update the transactions list and total
+    function updateTransactionsList() {
+      transactionsList.innerHTML = '';
+      let total = 0;
+
+      transactions.forEach((transaction, index) => {
+        const li = document.createElement("li");
+        li.classList.add("flex", "justify-between", "items-center", "p-2", "border", "border-gray-300", "rounded", "mb-2");
+
+        // Check if it's income or expense to format the amount with + or without the sign
+        const formattedAmount = transaction.type === 'income' 
+          ? `+ $${transaction.amount.toFixed(2)}`  // Add a + sign for income
+          : `- $${transaction.amount.toFixed(2)}`; // Show - for expenses
+
+        li.innerHTML = `
+          <span class="flex-1">${transaction.category} ${formattedAmount}</span>
+          <span class="text-${transaction.type === 'income' ? 'green' : 'red'}-500">${transaction.type}</span>
+          <i class="material-icons cursor-pointer text-red-500" onclick="deleteTransaction(${index})">delete</i>
+        `;
+
+        transactionsList.appendChild(li);
+
+        // Add the amount to the total (subtract for expense, add for income)
+        total += transaction.type === 'income' ? transaction.amount : -transaction.amount;
+      });
+
+      // Update the total amount display
+      totalAmountElement.textContent = `$${total.toFixed(2)}`;
+    }
+
+    // Clear all transactions with a confirmation prompt
+    function clearAll() {
+      Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this action!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, clear it!',
+        cancelButtonText: 'Cancel',
+        reverseButtons: true
+      }).then((result) => {
+        if (result.isConfirmed) {
+          transactions = [];
+          localStorage.setItem('transactions', JSON.stringify(transactions)); // Clear localStorage
+          updateTransactionsList();
+          Swal.fire(
+            'Cleared!',
+            'All transactions have been removed!',
+            'success'
+          );
+        }
+      });
+    }
+
+    // Initial load of transactions when the page is loaded
+    updateTransactionsList();
+  </script>
+
+</body>
+</html>
