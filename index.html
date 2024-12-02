@@ -44,7 +44,7 @@
     <!-- Total Display -->
     <div class="flex justify-between mt-4">
       <span class="font-semibold text-lg">Total:</span>
-      <span id="total-amount" class="font-semibold text-lg">$0</span>
+      <span id="total-amount" class="font-semibold text-lg">₹0</span>
     </div>
 
     <!-- Clear All Button -->
@@ -107,13 +107,13 @@
 
         // Check if it's income or expense to format the amount with + or without the sign
         const formattedAmount = transaction.type === 'income' 
-          ? `+ $${transaction.amount.toFixed(2)}`  // Add a + sign for income
-          : `- $${transaction.amount.toFixed(2)}`; // Show - for expenses
+          ? `+ ₹₹{transaction.amount.toFixed(2)}`  // Add a + sign for income
+          : `- ₹₹{transaction.amount.toFixed(2)}`; // Show - for expenses
 
         li.innerHTML = `
-          <span class="flex-1">${transaction.category} ${formattedAmount}</span>
-          <span class="text-${transaction.type === 'income' ? 'green' : 'red'}-500">${transaction.type}</span>
-          <i class="material-icons cursor-pointer text-red-500" onclick="deleteTransaction(${index})">delete</i>
+          <span class="flex-1">₹{transaction.category} ₹{formattedAmount}</span>
+          <span class="text-₹{transaction.type === 'income' ? 'green' : 'red'}-500">₹{transaction.type}</span>
+          <i class="material-icons cursor-pointer text-red-500" onclick="deleteTransaction(₹{index})">delete</i>
         `;
 
         transactionsList.appendChild(li);
@@ -123,7 +123,7 @@
       });
 
       // Update the total amount display
-      totalAmountElement.textContent = `$${total.toFixed(2)}`;
+      totalAmountElement.textContent = `₹₹{total.toFixed(2)}`;
     }
 
     // Clear all transactions with a confirmation prompt
